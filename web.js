@@ -63,7 +63,7 @@ io.sockets.on('connection', function(socket) {
   console.log('io connection');
   socket.on('call_customer', function(callId) {
     connections[callId+'c'] = socket;
-    socket.emit('start',cache[callId);
+    socket.emit('start',cache[callId]);
   });
   socket.on('call_support', function(callId) {
     connections[callId+'s'] = socket;
