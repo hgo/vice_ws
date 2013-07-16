@@ -35,7 +35,7 @@ app.post('/message/:action/:callId/:to', function (req, res) {
   console.log('app.post body:');
   console.log(req.body);
   console.log('app.post callId'+req.params.callId);
-  cache[req.params.callId+req.params.to] = req.body;
+  cache[req.params.callId] = req.body;
   target = connections[req.params.callId+req.params.to];
   console.log(req.params);
   if (target) {
@@ -63,7 +63,7 @@ io.sockets.on('connection', function(socket) {
   console.log('io connection');
   socket.on('call_customer', function(callId) {
     connections[callId+'c'] = socket;
-    socket.emit('start',cache[callId]);
+    socket.emit('start',cache[callId);
   });
   socket.on('call_support', function(callId) {
     connections[callId+'s'] = socket;
