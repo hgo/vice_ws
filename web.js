@@ -6,13 +6,14 @@ var express = require('express')
   , routes = require('./routes')
   , user = require('./routes/user')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+  ;
 
 var app = express();
 var cache ={};
 
 app.configure(function(){
-  app.set('port', process.env.PORT || 3000);
+  app.set('port', process.env.PORT || 80);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -51,7 +52,7 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 }),
  connections = {},
- io = require('socket.io').listen(server);
+ io = require('socket.io').listen(server,{log:false});
 /* 
 io.configure(function () { 
   io.set("transports", ["xhr-polling"]); 
