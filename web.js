@@ -52,6 +52,7 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 }),
  connections = {},
+ onlineAgents = {},
  io = require('socket.io').listen(server,{log:false});
 /* 
 io.configure(function () { 
@@ -60,8 +61,83 @@ io.configure(function () {
 });
  */
 /********** socket.io work ***************/
+
+function deleteOnlineAgent(socket){
+    console.log(onlineAgents);
+    console.log('----------------------------');
+    var breakCheck = true;
+    var tanent = -1;
+    for(var tanentId in onlineAgents){
+         if(breakCheck)
+            for(var i = 0 ; i < onlineAgents[tanentId].length; i++){
+                if(onlineAgents[tanentId][i].socket.id == socket.id){
+                    onlineAgents[tanentId].splice(i, 1);
+                    tanent = tanentId;
+                    breakCheck = false;
+                    break;
+             }
+         }
+     }
+     return tanent;
+}
+
+function broadcastOnlineAgentsByTanent(tanentId){
+    console.log('broadcastOnlineAgentsByTanent');
+    console.log('tanent :' +  tanentId);
+    console.log(''+onlineAgents[tanentId]);
+    if(typeof onlineAgents[tanentId] !== 'undefined' ){
+      var arr =  onlineAgents[tanentId];
+      var res = [];
+      for(var i = 0 ; i < onlineAgents[tanentId].length ; i++){
+        res.push(onlineAgents[tanentId][i].agent);
+      }
+      for(var i = 0 ; i < onlineAgents[tanentId].length ; i++){
+         console.log('tanent for ici:');        
+         console.log(""+onlineAgents[tanentId][i]);        
+         onlineAgents[tanentId][i].socket.emit('online_agents',res);
+     }  
+    }
+    
+}
+
 io.sockets.on('connection', function(socket) {
   console.log('io connection');
+  
+  socket.on('forward', function(tanentId, agentId, url) {
+      for(var i = 0 ; i < onlineAgents[tanentId].length; i++){
+        if(onlineAgents[tanentId][i].agent.id == agentId){
+            onlineAgents[tanentId][i].socket.emit('incoming_call',url);
+        }
+       }
+  });
+  
+  socket.on('online', function(agent) {
+    var agentArr = onlineAgents[agent.tanentId];
+    if(typeof agentArr == 'undefined'){
+        console.log("typeof agentArr == 'undefined'");
+        agentArr = [];
+    }
+    console.log(agentArr);
+    deleteOnlineAgent(socket);
+    
+    agentArr.push(
+        {
+         agent:agent,
+         socket:socket
+        }
+    );
+    
+    onlineAgents[agent.tanentId] = agentArr;
+    console.log(onlineAgents);
+    console.log('----------------------------');
+    broadcastOnlineAgentsByTanent(agent.tanentId);
+  });
+  
+  socket.on('disconnect', function() {
+    var tenantId = deleteOnlineAgent(socket);
+    broadcastOnlineAgentsByTanent(tenantId);
+  });
+
   socket.on('call_customer', function(callId) {
     connections[callId+'c'] = socket;
     socket.emit('start',cache[callId]);
