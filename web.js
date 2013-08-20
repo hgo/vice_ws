@@ -13,7 +13,7 @@ var app = express();
 var cache ={};
 
 app.configure(function(){
-  app.set('port', process.env.PORT || 80);
+  app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -118,10 +118,14 @@ function broadcastOnlineAgentsByTanent(tanentId){
 io.sockets.on('connection', function(socket) {
   console.log('io connection');
   
-  socket.on('forward', function(tanentId, agentId, url) {
-      for(var i = 0 ; i < onlineAgents[tanentId].length; i++){
-        if(onlineAgents[tanentId][i].agent.id == agentId){
-            onlineAgents[tanentId][i].socket.emit('incoming_call',url);
+  socket.on('forward', function(forwardObject) {
+      debugger;
+      for(var i = 0 ; i < onlineAgents[forwardObject.tanentId].length; i++){
+        console.log("onlineAgents[forwardObject.tanentId][i].agent.id = "+ onlineAgents[forwardObject.tanentId][i].agent.id );
+        console.log("forwardObject.agentId = "+forwardObject.agentId);
+        if(onlineAgents[forwardObject.tanentId][i].agent.id == forwardObject.id){
+            console.log("if icinde incoming call emit edecek");
+            onlineAgents[forwardObject.tanentId][i].socket.emit('incoming_call',forwardObject.url);
         }
        }
   });
